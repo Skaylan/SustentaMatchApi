@@ -53,10 +53,10 @@ def create_organization():
     
 
 
-@app.route('/api/v1/get_all_organizations', methods=['GET'])
+@app.route('/api/v1/get_organizations', methods=['GET'])
 def get_all_organzations():
     try:
-        orgs = Organization.query().all()
+        orgs = Organization.query.all()
         schema = OrganizationSchema(many=True)
         payload = schema.dump(orgs)
         return jsonify({
@@ -69,6 +69,6 @@ def get_all_organzations():
         return jsonify({
                 'status': 'error',
                 'message': 'An error has occurred!',
-                'error_class': error.__class__,
-                'error_cause': error.__cause__
+                'error_class': str(error.__class__),
+                'error_cause': str(error.__cause__)
         }), 500
