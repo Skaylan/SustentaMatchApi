@@ -19,6 +19,7 @@ with app.test_client() as client:
             "address": "pytest address",
             "cnpj": "00000000000000",
             "email": "pytest@email.com",
+            'password': 'pytestpassword',
             "id": 2,
             "name": "Organização pytest",
             "organization_type": 1,
