@@ -11,8 +11,6 @@ def create_organization():
     if request.method == 'POST':
         try:
             body = request.get_json()
-            
-            print(body)
 
             name = body['name']
             cnpj = body['cnpj']
@@ -21,8 +19,6 @@ def create_organization():
             email = body['email']
             organization_type = body['organization_type']
             action_field = body['organization_type']
-
-            # print(name, cnpj, address, phone_number, email, organization_type, action_field)
 
             org = Organization(
                 name=name, 
