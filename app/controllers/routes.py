@@ -1,7 +1,7 @@
 from app import app
 from app.config.db_config import *
 from app.config.app_config import *
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.tables.ogranization import Organization
 from app.models.schemas.organization_schema import OrganizationSchema
 from flask import request, jsonify
@@ -71,3 +71,43 @@ def get_all_organzations():
                 'error_class': str(error.__class__),
                 'error_cause': str(error.__cause__)
         }), 500
+    
+
+@app.route('/api/v1/delete_organization', methods=['DELETE'])
+def delete_organization():
+    if request.method == 'DELETE':
+        try:
+            body = request.get_json()
+            email = body['email']
+            password = body['password']
+
+            org = Organization.query.filter_by(email=email).first()
+            if org:
+                checked_password = check_password_hash(pwhash=org.password_hash, password=password)
+                if checked_password:
+                    db.session.delete(org)
+                    db.session.commit()
+                    db.session.close()
+
+                    return jsonify({
+                        'status': 'ok',
+                        'message': 'Organization successfuly deleted!'
+                    }), 202
+                else:
+                    return jsonify({
+                        'status': 'bad',
+                        'message': 'Wrong Password!'
+                    }), 500
+            else:
+                return jsonify({
+                    'status': 'bad',
+                    'message': f'Organization with email {email} not found!'
+                }), 404
+        except Exception as error:
+            print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            return jsonify({
+                    'status': 'error',
+                    'message': 'An error has occurred!',
+                    'error_class': str(error.__class__),
+                    'error_cause': str(error.__cause__)
+            }), 500
