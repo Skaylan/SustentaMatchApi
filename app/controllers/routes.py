@@ -1,6 +1,7 @@
 from app import app
 from app.config.db_config import *
 from app.config.app_config import *
+from werkzeug.security import generate_password_hash
 from app.models.tables.ogranization import Organization
 from app.models.schemas.organization_schema import OrganizationSchema
 from flask import request, jsonify
@@ -11,21 +12,23 @@ def create_organization():
     if request.method == 'POST':
         try:
             body = request.get_json()
-
             name = body['name']
             cnpj = body['cnpj']
+            password = body['password']
             address = body['address']
             phone_number = body['phone_number']
             email = body['email']
             organization_type = body['organization_type']
             action_field = body['organization_type']
+            password_hash = generate_password_hash(password=password)
 
             org = Organization(
                 name=name, 
                 cnpj=cnpj, 
                 address=address, 
                 phone_number=phone_number, 
-                email=email, 
+                email=email,
+                password_hash=password_hash,
                 organization_type=organization_type,
                 action_field = action_field
             )
