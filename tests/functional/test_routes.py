@@ -7,10 +7,10 @@ with app.test_client() as client:
 
 
     def test_get_organizations_route():
-        body = client.get('/api/v1/get_organizations')
-        _json = body.get_json()
-        assert body.status_code == 200
-        assert _json['status'] == 'ok'
+        response = client.get('/api/v1/get_organizations')
+        body = response.get_json()
+        assert response.status_code == 200
+        assert body['status'] == 'ok'
     
 
     def test_create_organization_route():
@@ -26,12 +26,29 @@ with app.test_client() as client:
             "phone_number": "9999999999"
         }
 
-        body = client.post(
+        response = client.post(
             '/api/v1/create_organization', 
             data=json.dumps(data_to_send),
             headers=HEADERS)
         
-        _json = body.get_json()
+        body = response.get_json()
 
-        assert body.status == '201 CREATED'
-        assert _json['status'] == 'ok'
+        assert response.status == '201 CREATED'
+        assert body['status'] == 'ok'
+
+
+    def test_delete_organization_route():
+        data_to_send = {
+            'email': 'pytest@email.com',
+            'password': 'pytestpassword'
+        }
+
+        response = client.delete(
+            '/api/v1/delete_organization', 
+            data=json.dumps(data_to_send), 
+            headers=HEADERS)
+        
+        body = response.get_json()
+        assert response.status_code == 202
+        assert body['status'] == 'ok'
+        assert body['message'] == 'Organization successfuly deleted!'
