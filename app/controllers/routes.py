@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.tables.ogranization import Organization
 from app.models.schemas.organization_schema import OrganizationSchema
 from flask import request, jsonify
+import jwt
+import datetime
 
 
 @app.route('/api/v1/create_organization', methods=['POST'])
@@ -103,6 +105,46 @@ def delete_organization():
                     'status': 'bad',
                     'message': f'Organization with email {email} not found!'
                 }), 404
+            
+        except Exception as error:
+            print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            return jsonify({
+                    'status': 'error',
+                    'message': 'An error has occurred!',
+                    'error_class': str(error.__class__),
+                    'error_cause': str(error.__cause__)
+            }), 500
+
+
+@app.route('/api/v1/authenticate', methods=['POST'])
+def authenticate():
+    if request.method == 'POST':
+        try:
+            body = request.get_json()
+            email = body['email']
+            password = body['password']
+
+            org = Organization.query.filter_by(email=email).first()
+            if org:
+                if check_password_hash(pwhash=org.password_hash, password=password):
+                    print('CHEGOU AQUI >>>>>>>>>>')
+                    token = jwt.encode({'email': org.email}, str(org.email), algorithm='HS256')
+                    return jsonify({
+                        'status': 'ok',
+                        'message': 'Successfuly authenticated!',
+                        'token': token
+                    })
+                else:
+                    return jsonify({
+                    'status': 'bad',
+                    'message': f'Wrong password!'
+                }), 404
+            else:
+                return jsonify({
+                    'status': 'bad',
+                    'message': f'Organization with email {email} not found!'
+                }), 404
+
         except Exception as error:
             print(f'error class: {error.__class__} | error cause: {error.__cause__}')
             return jsonify({
