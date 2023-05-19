@@ -75,6 +75,31 @@ def get_all_organzations():
         }), 500
     
 
+@app.route('/api/v1/get_organization_by_id', methods=['POST'])
+def get_organization_by_id():
+    if request.method == 'POST':
+        try:
+            body = request.get_json()
+            id = int(body['id'])
+            org = Organization.query.filter_by(id=id).first()
+            print("AQUI >>>>", org)
+            schema = OrganizationSchema()
+            payload = schema.dump(org)
+            return jsonify({
+                'organization': payload,
+                'status': 'ok'
+            }), 200
+
+        except Exception as error:
+            print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            return jsonify({
+                    'status': 'error',
+                    'message': 'An error has occurred!',
+                    'error_class': str(error.__class__),
+                    'error_cause': str(error.__cause__)
+            }), 500
+        
+
 @app.route('/api/v1/delete_organization', methods=['DELETE'])
 def delete_organization():
     if request.method == 'DELETE':
@@ -129,10 +154,13 @@ def authenticate():
                 if check_password_hash(pwhash=org.password_hash, password=password):
                     print('CHEGOU AQUI >>>>>>>>>>')
                     token = jwt.encode({'email': org.email}, str(org.email), algorithm='HS256')
+                    schema = OrganizationSchema()
+                    payload = schema.dump(org)
                     return jsonify({
                         'status': 'ok',
                         'message': 'Successfuly authenticated!',
-                        'token': token
+                        'token': token,
+                        'user_infos': payload
                     })
                 else:
                     return jsonify({

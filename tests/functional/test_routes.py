@@ -18,9 +18,8 @@ with app.test_client() as client:
             "action_field": "1",
             "address": "pytest address",
             "cnpj": "00000000000000",
-            "email": "pytest@email.com",
-            'password': 'pytestpassword',
-            "id": 2,
+            "email": "test_org@email.com",
+            'password': '123456789',
             "name": "Organização pytest",
             "organization_type": 1,
             "phone_number": "9999999999"
@@ -39,8 +38,8 @@ with app.test_client() as client:
 
     def test_delete_organization_route():
         data_to_send = {
-            'email': 'pytest@email.com',
-            'password': 'pytestpassword'
+            'email': 'test_org@email.com',
+            'password': '123456789'
         }
 
         response = client.delete(
