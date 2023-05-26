@@ -5,6 +5,7 @@ from datetime import datetime
 
 
 class Organization(db.Model):
+    __tablename__='organization'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
     cnpj = db.Column(db.String(14), unique=True, nullable=False)
@@ -16,14 +17,15 @@ class Organization(db.Model):
     action_field = db.Column(db.String(100), unique=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, default=datetime.now())
-    # connections = db.relationship('Connections', backref='conn')
+    campaign = db.relationship('Campaign', backref='owner')
+
 
 
     def __init__(
         self, 
         name: str, 
         cnpj: str, 
-        address: str, 
+        address: str,
         phone_number: str, 
         email: str,
         password_hash: str,

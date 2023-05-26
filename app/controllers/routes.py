@@ -3,10 +3,15 @@ from app.config.db_config import *
 from app.config.app_config import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.tables.ogranization import Organization
+from app.models.tables.campaign import Campaign
+from app.models.tables.campaign_images import CampaignImages
 from app.models.schemas.organization_schema import OrganizationSchema
+from app.models.schemas.campaign_schema import CampaignSchema
 from flask import request, jsonify
 import jwt
+from uuid import uuid4
 import datetime
+from app.utils import convert_base64_to_image
 
 
 @app.route('/api/v1/create_organization', methods=['POST'])
@@ -82,7 +87,6 @@ def get_organization_by_id():
             body = request.get_json()
             id = int(body['id'])
             org = Organization.query.filter_by(id=id).first()
-            print("AQUI >>>>", org)
             schema = OrganizationSchema()
             payload = schema.dump(org)
             return jsonify({
@@ -152,7 +156,6 @@ def authenticate():
             org = Organization.query.filter_by(email=email).first()
             if org:
                 if check_password_hash(pwhash=org.password_hash, password=password):
-                    print('CHEGOU AQUI >>>>>>>>>>')
                     token = jwt.encode({'email': org.email}, str(org.email), algorithm='HS256')
                     schema = OrganizationSchema()
                     payload = schema.dump(org)
@@ -161,7 +164,7 @@ def authenticate():
                         'message': 'Successfuly authenticated!',
                         'token': token,
                         'user_infos': payload
-                    })
+                    }), 200
                 else:
                     return jsonify({
                     'status': 'bad',
@@ -181,3 +184,69 @@ def authenticate():
                     'error_class': str(error.__class__),
                     'error_cause': str(error.__cause__)
             }), 500
+        
+@app.route('/api/v1/create_campaign', methods=['POST'])
+def create_campaign():
+    if request.method == 'POST':
+        try:
+            body = request.get_json()
+            title = body['title']
+            info_text = body['info_text']
+            banner_img_data = body['banner_img_data']
+            org_id = body['org_id']
+            banner_img_uuid = uuid4()
+            
+            campaign = Campaign(
+                title=title,
+                info_text=info_text,
+                banner_img_uuid=str(banner_img_uuid),
+                owner_id=int(org_id)
+            )
+            
+            convert_base64_to_image(
+                img_base64_string=banner_img_data,
+                image_uuid=banner_img_uuid,
+                save_path='D://atividades//SustentaMatchApi//app//image_database'
+            )
+
+            db.session.add(campaign)
+            db.session.commit()
+            db.session.close()
+            
+            return jsonify({
+                'status': 'ok',
+                'message': 'Campaign successfuly created!',
+            }), 201
+        
+        except Exception as error:
+            print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            return jsonify({
+                    'status': 'error',
+                    'message': 'An error has occurred!',
+                    'error_class': str(error.__class__),
+                    'error_cause': str(error.__cause__)
+            }), 500
+        
+
+@app.route('/api/v1/get_campaigns', methods=['POST'])
+def get_campaign():
+
+    try:
+        body = request.get_json()
+        owner_id = body['owner_id']
+        campaigns = Campaign.query.filter_by(owner_id=owner_id).all()
+        campaigns_schema = CampaignSchema(many=True)
+        payload = campaigns_schema.dump(campaigns)
+        return jsonify(
+            {   'status': 'ok',
+                'campaigns': payload
+            }
+        )
+    except Exception as error:
+        print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+        return jsonify({
+                'status': 'error',
+                'message': 'An error has occurred!',
+                'error_class': str(error.__class__),
+                'error_cause': str(error.__cause__)
+        }), 500
