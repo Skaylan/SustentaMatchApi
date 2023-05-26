@@ -22,7 +22,7 @@ with app.test_client() as client:
             'password': '123456789',
             "name": "Organização pytest",
             "organization_type": 1,
-            "phone_number": "9999999999"
+            "phone_number": "0000000000"
         }
 
         response = client.post(
