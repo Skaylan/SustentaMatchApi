@@ -4,6 +4,8 @@ COPY . .
 EXPOSE 5000
 ENTRYPOINT ["python"]
 
+RUN apt-get update && apt-get install -y libpq-dev build-essential
+
 RUN ["python3", "-m", "pip", "install", "--upgrade", "pip"]
 RUN ["pip", "install", "--no-cache-dir", "-r", "requirements.txt"]
 
