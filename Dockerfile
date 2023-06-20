@@ -6,7 +6,7 @@ EXPOSE 5000
 ENTRYPOINT ["./entrypoint.sh"]
 RUN chmod u+x ./entrypoint.sh
 
-RUN ["python3", "-m", "flask", "db", "init"]
-RUN ["python3", "-m", "flask", "db", "upgrade"]
+RUN ["python", "-m", "flask", "db", "init"]
+RUN ["python", "-m", "flask", "db", "upgrade"]
 
 CMD ["gunicorn app:app"]
