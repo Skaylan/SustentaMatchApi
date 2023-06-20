@@ -1,8 +1,8 @@
 """first migration
 
-Revision ID: 3d83cb23cc5c
+Revision ID: 26d22addf388
 Revises: 
-Create Date: 2023-05-25 22:19:13.466321
+Create Date: 2023-06-14 14:01:06.912249
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3d83cb23cc5c'
+revision = '26d22addf388'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,10 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('cnpj', sa.String(length=14), nullable=False),
-    sa.Column('address', sa.Text(), nullable=False),
+    sa.Column('street_name', sa.Text(), nullable=False),
+    sa.Column('cep', sa.String(length=8), nullable=False),
+    sa.Column('number', sa.String(length=10), nullable=False),
+    sa.Column('state_name', sa.String(length=100), nullable=False),
     sa.Column('phone_number', sa.String(length=14), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('password_hash', sa.Text(), nullable=False),
@@ -31,7 +34,6 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('address'),
     sa.UniqueConstraint('cnpj'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('phone_number')

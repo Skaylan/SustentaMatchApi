@@ -7,17 +7,6 @@ class OrganizationSchema(ma.SQLAlchemyAutoSchema):
     campaigns = ma.Nested(CampaignSchema, many=True)
     class Meta:
         model = Organization
-        load_instance = True,
-        # fields = [
-        #     'id', 
-        #     'name', 
-        #     'cnpj', 
-        #     'phone_number', 
-        #     'email', 
-        #     'address', 
-        #     'organization_type', 
-        #     'action_field',
-        #     'created_at',
-        #     'updated_at',
-        #     'campaign'
-        # ]
+        load_instance = True
+        exclude=['password_hash']
+        
