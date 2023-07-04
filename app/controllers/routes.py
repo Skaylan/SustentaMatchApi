@@ -12,10 +12,10 @@ from flask import request, jsonify
 import jwt
 import sys, os
 from uuid import uuid4
-import datetime
 from app.utils import convert_base64_to_image, convert_image_to_base64
 
 IMAGES_SAVE_PATH = "D://atividades//SustentaMatchApi//app//image_database"
+
 
 @app.route('/api/v1/create_organization', methods=['POST'])
 def create_organization():
@@ -99,10 +99,7 @@ def get_all_organzations():
         organization_schema = OrganizationSchema(many=True)
         orgs = Organization.query.all()
         payload = organization_schema.dump(orgs)
-        return jsonify({
-            'organizations': payload,
-            'status': 'ok'
-        }), 200
+        return jsonify(payload), 200
     
     except Exception as error:
         print(f'error class: {error.__class__} | error cause: {error.__cause__}')
@@ -117,30 +114,29 @@ def get_all_organzations():
         }), 500
     
 
-@app.route('/api/v1/get_organization_by_id', methods=['POST'])
+@app.route('/api/v1/get_organization_by_id', methods=['GET'])
 def get_organization_by_id():
-    if request.method == 'POST':
+    if request.method == 'GET':
         try:
-            body = request.get_json()
-            id = int(body['id'])
+            id = request.args.get('user_id')
+            id = int(id)
             org = Organization.query.filter_by(id=id).first()
             schema = OrganizationSchema()
             payload = schema.dump(org)
             payload['profile_img_b64_string'] = convert_image_to_base64(IMAGES_SAVE_PATH, payload['profile_image_uuid'])
-            return jsonify({
-                'organization': payload,
-                'status': 'ok'
-            }), 200
-
+            return jsonify(payload), 200
         except Exception as error:
             print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
             return jsonify({
                     'status': 'error',
                     'message': 'An error has occurred!',
                     'error_class': str(error.__class__),
                     'error_cause': str(error.__cause__)
             }), 500
-        
+            
 
 @app.route('/api/v1/delete_organization', methods=['DELETE'])
 def delete_organization():
@@ -175,6 +171,9 @@ def delete_organization():
             
         except Exception as error:
             print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
             return jsonify({
                     'status': 'error',
                     'message': 'An error has occurred!',
@@ -216,6 +215,9 @@ def authenticate():
 
         except Exception as error:
             print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
             return jsonify({
                     'status': 'error',
                     'message': 'An error has occurred!',
@@ -259,6 +261,9 @@ def create_campaign():
         
         except Exception as error:
             print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
             return jsonify({
                     'status': 'error',
                     'message': 'An error has occurred!',
@@ -269,27 +274,22 @@ def create_campaign():
 
 
 
-@app.route('/api/v1/get_campaigns', methods=['POST'])
+@app.route('/api/v1/get_organization_campaigns', methods=['GET'])
 def get_campaign():
-
     try:
-        body = request.get_json()
-        owner_id = body['owner_id']
+        owner_id = request.args.get("owner_id")
         campaigns = Campaign.query.filter_by(owner_id=owner_id).order_by(Campaign.created_at.desc()).all()
         campaigns_schema = CampaignSchema(many=True)
         payload = campaigns_schema.dump(campaigns)
 
-        for i, item in enumerate(payload):
+        for i, _ in enumerate(payload):
             payload[i]['banner_img_b64_string'] = convert_image_to_base64(IMAGES_SAVE_PATH, payload[i]['banner_img_uuid'])
-        
-
-        return jsonify(
-            {   'status': 'ok',
-                'campaigns': payload
-            }
-        )
+        return jsonify(payload)
     except Exception as error:
         print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         return jsonify({
                 'status': 'error',
                 'message': 'An error has occurred!',
@@ -300,14 +300,21 @@ def get_campaign():
 
 @app.route('/api/v1/get_organizations_by_args', methods=['GET'])
 def get_campaigns_by_args():
-
+    ORG_TYPE = ['ong', 'empresa']
+    ACTION_FIELDS = ['meio ambiente', 'tecnologia', 'saude', 'educacao', 'direitos humanos']
     try:
         org_type = request.args.get('org_type')
         action_field = request.args.get('action_field')
-        if action_field == 'null' and org_type == 'null':
-            orgs = Organization.query.all()
-        else:
+        print(org_type, action_field)
+        if org_type in ORG_TYPE and action_field in ACTION_FIELDS:
             orgs = Organization.query.filter_by(organization_type=org_type).filter_by(action_field=action_field).all()
+        elif org_type == 'ong' and action_field == 'all':
+            orgs = Organization.query.filter_by(organization_type='ong').all()
+        elif org_type == 'empresa' and action_field == 'all':
+            orgs = Organization.query.filter_by(organization_type='empresa').all()
+        else:
+            orgs = Organization.query.all()
+            
         org_schema = OrganizationSchema(many=True)
         payload = org_schema.dump(orgs)
 
@@ -321,6 +328,9 @@ def get_campaigns_by_args():
         )
     except Exception as error:
         print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         return jsonify({
                 'status': 'error',
                 'message': 'An error has occurred!',
@@ -343,6 +353,9 @@ def get_campaign_by_id():
         })
     except Exception as error:
         print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         return jsonify({
                 'status': 'error',
                 'message': 'An error has occurred!',
@@ -372,6 +385,9 @@ def add_campaign_image():
     
     except Exception as error:
         print(f'error class: {error.__class__} | error cause: {error.__cause__}')
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         return jsonify({
                 'status': 'error',
                 'message': 'An error has occurred!',
